@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -46,13 +47,22 @@ namespace MyShop.WebUI.Controllers
         }
 
         [HttpPost]
-        public ActionResult Create(Product product)
+        public ActionResult Create(Product product, HttpPostedFileBase file)
         {
             if (!ModelState.IsValid) {
                 return View(product); //retturning page back with validation error messages
             }
 			else
 			{
+                if(file != null)
+				{
+                    product.Image = product.Id + Path.GetExtension(file.FileName); /*Id is the name and the file extention
+                    * is the same as the file extention. We use Id in case the user uploads more than one file. Path will
+                    * give us the file extension*/
+                    file.SaveAs(Server.MapPath("//Content//ProductImages//") + product.Image); /*Server.mapPath allows us to pass an UNC path, a path to a folder or file on a network
+                    * and contains the server name in the path*/ 
+
+                }
                 context.Insert(product);
                 context.Commit(); //save in cache the product
 
@@ -77,7 +87,7 @@ namespace MyShop.WebUI.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(Product product, string id)
+        public ActionResult Edit(Product product, string id, HttpPostedFileBase file)
 		{
             Product productToEdit = context.Find(id);
             if (productToEdit == null)
@@ -92,10 +102,17 @@ namespace MyShop.WebUI.Controllers
 				}
 				else
 				{
+                    if (file != null)
+                    {
+                        productToEdit.Image = product.Id + Path.GetExtension(file.FileName);
+                        file.SaveAs(Server.MapPath("//Content//ProductImages//") + productToEdit.Image);
+
+                    }
+
                     productToEdit.Category = product.Category;
                     productToEdit.Description = product.Description;
-                    productToEdit.Image = product.Image;
                     productToEdit.Name = product.Name;
+                    //productToEdit.Image = product.Image; I want it in the folder not in the DB
                     productToEdit.Price = product.Price;
 
                     context.Commit();
@@ -122,12 +139,21 @@ namespace MyShop.WebUI.Controllers
         public ActionResult ConfirmDelete(string id)
 		{
             Product productToDelete = context.Find(id);
-            if (productToDelete == null)
+
+			if (productToDelete == null)
             {
                 return HttpNotFound();
             }
             else
             {
+				/*ToDo
+				 * Delete file from content folder when deleting an item.
+				FileInfo file = new FileInfo(Server.MapPath("//Content//ProductImages//") + productToDelete.Image);
+				if (file.Exists)
+				{
+                    file.Delete();
+				}
+                */
                 context.Delete(id);
                 context.Commit();
                 return RedirectToAction("Index");
