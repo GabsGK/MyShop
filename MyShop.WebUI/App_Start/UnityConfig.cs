@@ -1,6 +1,7 @@
 using MyShop.Core.Contracts;
 using MyShop.Core.Models;
 using MyShop.DataAccess.InMemory;
+using MySjop.DataAccess.SQL;
 using System;
 
 using Unity;
@@ -45,8 +46,11 @@ namespace MyShop.WebUI
 
             // TODO: Register your type's mappings here.
             // container.RegisterType<IProductRepository, ProductRepository>();
-            container.RegisterType<IRepository<Product>, InMemoryRepository<Product>>();
-            container.RegisterType<IRepository<ProductCategory>, InMemoryRepository<ProductCategory>>();
+            /* Because we now have entity FW we need to tell it to use that instead of inMemory container.RegisterType<IRepository<Product>, InMemoryRepository<Product>>();
+            container.RegisterType<IRepository<ProductCategory>, InMemoryRepository<ProductCategory>>();*/
+            container.RegisterType<IRepository<Product>, SQLRepository<Product>>();
+            container.RegisterType<IRepository<ProductCategory>, SQLRepository<ProductCategory>>();
+            /*Even tho SQLRepository wants a data context to be injected in, we don't tell it here that specifically, that is because the ocntainer is smart enought to know that*/
         }
     }
 }
